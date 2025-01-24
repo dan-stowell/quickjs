@@ -5,7 +5,7 @@ rule clang_rule
         -Wextra -Wno-sign-compare -Wno-missing-field-initializers $
         -Wundef -Wuninitialized -Wunused -Wno-unused-parameter $
         -Wwrite-strings -Wchar-subscripts -funsigned-char -fwrapv $
-        -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-02-14\" -DCONFIG_BIGNUM $
+        -D_GNU_SOURCE -DCONFIG_VERSION="2024-02-14" -DCONFIG_BIGNUM $
         -O2 -c -o $out $in
 
 rule link_executable_rule
@@ -13,9 +13,12 @@ rule link_executable_rule
         $in -lm -ldl -lpthread
 
 build .obj/examples/fib.o: clang_rule examples/fib.c
+
 rule test_fib_c_rule
   command = ./qjsc -e -M examples/fib.so,fib -m -o test_fib.c examples/test_fib.js
+
 build test_fib.c: test_fib_c_rule qjsc examples/test_fib.js
+
 build .obj/test_fib.o: clang_rule test_fib.c
 build examples/test_fib: link_executable_rule .obj/test_fib.o .obj/examples/fib.o libquickjs.a
 rule examples_hello_module_rule
