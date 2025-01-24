@@ -1,4 +1,5 @@
 *.a
+.ninja_log
 .obj/
 tests/bjson.so
 examples/test_fib
