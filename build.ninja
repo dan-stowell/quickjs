@@ -56,6 +56,3 @@ rule qjs_rule
 build qjs: qjs_rule .obj/qjs.o .obj/repl.o .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o .obj/qjscalc.o
 build .obj/qjs.check.o: clang_rule qjs.c
 build .obj/quickjs.check.o: clang_rule quickjs.c
-rule _obj_rule
-  command = mkdir -p .obj .obj/examples .obj/tests
-build .obj: _obj_rule
