@@ -8,18 +8,16 @@ rule clang_rule
         -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-02-14\" -DCONFIG_BIGNUM $
         -O2 -c -o $out $in
 
-rule _obj_examples_fib_o_rule
-  command = clang -g -Wall -MMD -MF .obj/fib.o.d -Wextra -Wno-sign-compare -Wno-missing-field-initializers -Wundef -Wuninitialized -Wunused -Wno-unused-parameter -Wwrite-strings -Wchar-subscripts -funsigned-char -MMD -MF .obj/fib.o.d -fwrapv  -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-02-14\" -DCONFIG_BIGNUM -O2 -c -o .obj/examples/fib.o examples/fib.c
-build .obj/examples/fib.o: _obj_examples_fib_o_rule examples/fib.c .obj
+rule example_executable_rule
+    command = clang -g -o $out $
+        $in -lm -ldl -lpthread
+
+build .obj/examples/fib.o: clang_rule examples/fib.c
 rule test_fib_c_rule
   command = ./qjsc -e -M examples/fib.so,fib -m -o test_fib.c examples/test_fib.js
 build test_fib.c: test_fib_c_rule qjsc examples/test_fib.js
-rule _obj_test_fib_o_rule
-  command = clang -g -Wall -MMD -MF .obj/test_fib.o.d -Wextra -Wno-sign-compare -Wno-missing-field-initializers -Wundef -Wuninitialized -Wunused -Wno-unused-parameter -Wwrite-strings -Wchar-subscripts -funsigned-char -MMD -MF .obj/test_fib.o.d -fwrapv  -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-02-14\" -DCONFIG_BIGNUM -O2 -c -o .obj/test_fib.o test_fib.c
-build .obj/test_fib.o: _obj_test_fib_o_rule test_fib.c .obj
-rule examples_test_fib_rule
-  command = clang -g -o examples/test_fib .obj/test_fib.o .obj/examples/fib.o libquickjs.a -lm -ldl -lpthread
-build examples/test_fib: examples_test_fib_rule .obj/test_fib.o .obj/examples/fib.o libquickjs.a
+build .obj/test_fib.o: clang_rule test_fib.c
+build examples/test_fib: example_executable_rule .obj/test_fib.o .obj/examples/fib.o libquickjs.a
 rule examples_hello_module_rule
   command = ./qjsc -fno-string-normalize -fno-map -fno-promise -fno-typedarray -fno-typedarray -fno-regexp -fno-json -fno-eval -fno-proxy -fno-date -m -o examples/hello_module examples/hello_module.js
 build examples/hello_module: examples_hello_module_rule qjsc libquickjs.a examples/hello_module.js
@@ -27,18 +25,14 @@ rule hello_c_rule
   command = ./qjsc -e -fno-string-normalize -fno-map -fno-promise -fno-typedarray -fno-typedarray -fno-regexp -fno-json -fno-eval -fno-proxy -fno-date -fno-module-loader -fno-bigint -o hello.c examples/hello.js
 build hello.c: hello_c_rule qjsc examples/hello.js
 build .obj/hello.o: clang_rule hello.c
-rule examples_hello_rule
-  command = clang -g -o examples/hello .obj/hello.o .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o -lm -ldl -lpthread
-build examples/hello: examples_hello_rule .obj/hello.o .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o
+build examples/hello: example_executable_rule .obj/hello.o .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o
 rule libquickjs_a_rule
   command = ar rcs libquickjs.a .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o
 build libquickjs.a: libquickjs_a_rule .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o
 rule qjscalc_rule
   command = ln -sf qjs qjscalc
 build qjscalc: qjscalc_rule qjs
-rule _obj_run-test262_o_rule
-  command = clang -g -Wall -MMD -MF .obj/run-test262.o.d -Wextra -Wno-sign-compare -Wno-missing-field-initializers -Wundef -Wuninitialized -Wunused -Wno-unused-parameter -Wwrite-strings -Wchar-subscripts -funsigned-char -MMD -MF .obj/run-test262.o.d -fwrapv  -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-02-14\" -DCONFIG_BIGNUM -O2 -c -o .obj/run-test262.o run-test262.c
-build .obj/run-test262.o: _obj_run-test262_o_rule run-test262.c .obj
+build .obj/run-test262.o: clang_rule run-test262.c
 rule run-test262_rule
   command = clang -g -o run-test262 .obj/run-test262.o .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o -lm -ldl -lpthread
 build run-test262: run-test262_rule .obj/run-test262.o .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o
