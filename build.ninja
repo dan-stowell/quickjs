@@ -8,7 +8,7 @@ rule clang_rule
         -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-02-14\" -DCONFIG_BIGNUM $
         -O2 -c -o $out $in
 
-rule example_executable_rule
+rule link_executable_rule
     command = clang -g -o $out $
         $in -lm -ldl -lpthread
 
@@ -17,7 +17,7 @@ rule test_fib_c_rule
   command = ./qjsc -e -M examples/fib.so,fib -m -o test_fib.c examples/test_fib.js
 build test_fib.c: test_fib_c_rule qjsc examples/test_fib.js
 build .obj/test_fib.o: clang_rule test_fib.c
-build examples/test_fib: example_executable_rule .obj/test_fib.o .obj/examples/fib.o libquickjs.a
+build examples/test_fib: link_executable_rule .obj/test_fib.o .obj/examples/fib.o libquickjs.a
 rule examples_hello_module_rule
   command = ./qjsc -fno-string-normalize -fno-map -fno-promise -fno-typedarray -fno-typedarray -fno-regexp -fno-json -fno-eval -fno-proxy -fno-date -m -o examples/hello_module examples/hello_module.js
 build examples/hello_module: examples_hello_module_rule qjsc libquickjs.a examples/hello_module.js
@@ -25,7 +25,7 @@ rule hello_c_rule
   command = ./qjsc -e -fno-string-normalize -fno-map -fno-promise -fno-typedarray -fno-typedarray -fno-regexp -fno-json -fno-eval -fno-proxy -fno-date -fno-module-loader -fno-bigint -o hello.c examples/hello.js
 build hello.c: hello_c_rule qjsc examples/hello.js
 build .obj/hello.o: clang_rule hello.c
-build examples/hello: example_executable_rule .obj/hello.o .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o
+build examples/hello: link_executable_rule .obj/hello.o .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o
 rule libquickjs_a_rule
   command = ar rcs libquickjs.a .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o
 build libquickjs.a: libquickjs_a_rule .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o
@@ -33,57 +33,29 @@ rule qjscalc_rule
   command = ln -sf qjs qjscalc
 build qjscalc: qjscalc_rule qjs
 build .obj/run-test262.o: clang_rule run-test262.c
-rule run-test262_rule
-  command = clang -g -o run-test262 .obj/run-test262.o .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o -lm -ldl -lpthread
-build run-test262: run-test262_rule .obj/run-test262.o .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o
+build run-test262: link_executable_rule .obj/run-test262.o .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o
 rule qjscalc_c_rule
   command = ./qjsc -fbignum -c -o qjscalc.c qjscalc.js
 build qjscalc.c: qjscalc_c_rule qjsc qjscalc.js
-rule _obj_qjscalc_o_rule
-  command = clang -g -Wall -MMD -MF .obj/qjscalc.o.d -Wextra -Wno-sign-compare -Wno-missing-field-initializers -Wundef -Wuninitialized -Wunused -Wno-unused-parameter -Wwrite-strings -Wchar-subscripts -funsigned-char -MMD -MF .obj/qjscalc.o.d -fwrapv  -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-02-14\" -DCONFIG_BIGNUM -O2 -c -o .obj/qjscalc.o qjscalc.c
-build .obj/qjscalc.o: _obj_qjscalc_o_rule qjscalc.c .obj
-rule _obj_libbf_o_rule
-  command = clang -g -Wall -MMD -MF .obj/libbf.o.d -Wextra -Wno-sign-compare -Wno-missing-field-initializers -Wundef -Wuninitialized -Wunused -Wno-unused-parameter -Wwrite-strings -Wchar-subscripts -funsigned-char -MMD -MF .obj/libbf.o.d -fwrapv  -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-02-14\" -DCONFIG_BIGNUM -O2 -c -o .obj/libbf.o libbf.c
-build .obj/libbf.o: _obj_libbf_o_rule libbf.c .obj
-rule _obj_quickjs-libc_o_rule
-  command = clang -g -Wall -MMD -MF .obj/quickjs-libc.o.d -Wextra -Wno-sign-compare -Wno-missing-field-initializers -Wundef -Wuninitialized -Wunused -Wno-unused-parameter -Wwrite-strings -Wchar-subscripts -funsigned-char -MMD -MF .obj/quickjs-libc.o.d -fwrapv  -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-02-14\" -DCONFIG_BIGNUM -O2 -c -o .obj/quickjs-libc.o quickjs-libc.c
-build .obj/quickjs-libc.o: _obj_quickjs-libc_o_rule quickjs-libc.c .obj
-rule _obj_cutils_o_rule
-  command = clang -g -Wall -MMD -MF .obj/cutils.o.d -Wextra -Wno-sign-compare -Wno-missing-field-initializers -Wundef -Wuninitialized -Wunused -Wno-unused-parameter -Wwrite-strings -Wchar-subscripts -funsigned-char -MMD -MF .obj/cutils.o.d -fwrapv  -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-02-14\" -DCONFIG_BIGNUM -O2 -c -o .obj/cutils.o cutils.c
-build .obj/cutils.o: _obj_cutils_o_rule cutils.c .obj
-rule _obj_libunicode_o_rule
-  command = clang -g -Wall -MMD -MF .obj/libunicode.o.d -Wextra -Wno-sign-compare -Wno-missing-field-initializers -Wundef -Wuninitialized -Wunused -Wno-unused-parameter -Wwrite-strings -Wchar-subscripts -funsigned-char -MMD -MF .obj/libunicode.o.d -fwrapv  -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-02-14\" -DCONFIG_BIGNUM -O2 -c -o .obj/libunicode.o libunicode.c
-build .obj/libunicode.o: _obj_libunicode_o_rule libunicode.c .obj
-rule _obj_libregexp_o_rule
-  command = clang -g -Wall -MMD -MF .obj/libregexp.o.d -Wextra -Wno-sign-compare -Wno-missing-field-initializers -Wundef -Wuninitialized -Wunused -Wno-unused-parameter -Wwrite-strings -Wchar-subscripts -funsigned-char -MMD -MF .obj/libregexp.o.d -fwrapv  -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-02-14\" -DCONFIG_BIGNUM -O2 -c -o .obj/libregexp.o libregexp.c
-build .obj/libregexp.o: _obj_libregexp_o_rule libregexp.c .obj
-rule _obj_quickjs_o_rule
-  command = clang -g -Wall -MMD -MF .obj/quickjs.o.d -Wextra -Wno-sign-compare -Wno-missing-field-initializers -Wundef -Wuninitialized -Wunused -Wno-unused-parameter -Wwrite-strings -Wchar-subscripts -funsigned-char -MMD -MF .obj/quickjs.o.d -fwrapv  -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-02-14\" -DCONFIG_BIGNUM -O2 -c -o .obj/quickjs.o quickjs.c
-build .obj/quickjs.o: _obj_quickjs_o_rule quickjs.c .obj
-rule _obj_qjsc_o_rule
-  command = clang -g -Wall -MMD -MF .obj/qjsc.o.d -Wextra -Wno-sign-compare -Wno-missing-field-initializers -Wundef -Wuninitialized -Wunused -Wno-unused-parameter -Wwrite-strings -Wchar-subscripts -funsigned-char -MMD -MF .obj/qjsc.o.d -fwrapv  -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-02-14\" -DCONFIG_BIGNUM -DCONFIG_CC=\"clang\" -DCONFIG_PREFIX=\"/usr/local\" -O2 -c -o .obj/qjsc.o qjsc.c
-build .obj/qjsc.o: _obj_qjsc_o_rule qjsc.c .obj
-rule qjsc_rule
-  command = clang -g -o qjsc .obj/qjsc.o .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o -lm -ldl -lpthread
-build qjsc: qjsc_rule .obj/qjsc.o .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o
+build .obj/qjscalc.o: clang_rule qjscalc.c
+build .obj/libbf.o: clang_rule libbf.c
+build .obj/quickjs-libc.o: clang_rule quickjs-libc.c
+build .obj/cutils.o: clang_rule cutils.c
+build .obj/libunicode.o: clang_rule libunicode.c
+build .obj/libregexp.o: clang_rule libregexp.c
+build .obj/quickjs.o: clang_rule quickjs.c
+build .obj/qjsc.o: clang_rule qjsc.c
+build qjsc: link_executable_rule .obj/qjsc.o .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o
 rule repl_c_rule
   command = ./qjsc -c -o repl.c -m repl.js
 build repl.c: repl_c_rule qjsc repl.js
-rule _obj_repl_o_rule
-  command = clang -g -Wall -MMD -MF .obj/repl.o.d -Wextra -Wno-sign-compare -Wno-missing-field-initializers -Wundef -Wuninitialized -Wunused -Wno-unused-parameter -Wwrite-strings -Wchar-subscripts -funsigned-char -MMD -MF .obj/repl.o.d -fwrapv  -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-02-14\" -DCONFIG_BIGNUM -O2 -c -o .obj/repl.o repl.c
-build .obj/repl.o: _obj_repl_o_rule repl.c .obj
-rule _obj_qjs_o_rule
-  command = clang -g -Wall -MMD -MF .obj/qjs.o.d -Wextra -Wno-sign-compare -Wno-missing-field-initializers -Wundef -Wuninitialized -Wunused -Wno-unused-parameter -Wwrite-strings -Wchar-subscripts -funsigned-char -MMD -MF .obj/qjs.o.d -fwrapv  -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-02-14\" -DCONFIG_BIGNUM -O2 -c -o .obj/qjs.o qjs.c
-build .obj/qjs.o: _obj_qjs_o_rule qjs.c .obj
+build .obj/repl.o: clang_rule repl.c
+build .obj/qjs.o: clang_rule qjs.c
 rule qjs_rule
   command = clang -g -rdynamic -o qjs .obj/qjs.o .obj/repl.o .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o .obj/qjscalc.o -lm -ldl -lpthread
 build qjs: qjs_rule .obj/qjs.o .obj/repl.o .obj/quickjs.o .obj/libregexp.o .obj/libunicode.o .obj/cutils.o .obj/quickjs-libc.o .obj/libbf.o .obj/qjscalc.o
-rule _obj_qjs_check_o_rule
-  command = clang -g -Wall -MMD -MF .obj/qjs.check.o.d -Wextra -Wno-sign-compare -Wno-missing-field-initializers -Wundef -Wuninitialized -Wunused -Wno-unused-parameter -Wwrite-strings -Wchar-subscripts -funsigned-char -MMD -MF .obj/qjs.check.o.d -fwrapv  -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-02-14\" -DCONFIG_BIGNUM -DCONFIG_CHECK_JSVALUE -c -o .obj/qjs.check.o qjs.c
-build .obj/qjs.check.o: _obj_qjs_check_o_rule qjs.c .obj
-rule _obj_quickjs_check_o_rule
-  command = clang -g -Wall -MMD -MF .obj/quickjs.check.o.d -Wextra -Wno-sign-compare -Wno-missing-field-initializers -Wundef -Wuninitialized -Wunused -Wno-unused-parameter -Wwrite-strings -Wchar-subscripts -funsigned-char -MMD -MF .obj/quickjs.check.o.d -fwrapv  -D_GNU_SOURCE -DCONFIG_VERSION=\"2024-02-14\" -DCONFIG_BIGNUM -DCONFIG_CHECK_JSVALUE -c -o .obj/quickjs.check.o quickjs.c
-build .obj/quickjs.check.o: _obj_quickjs_check_o_rule quickjs.c .obj
+build .obj/qjs.check.o: clang_rule qjs.c
+build .obj/quickjs.check.o: clang_rule quickjs.c
 rule _obj_rule
   command = mkdir -p .obj .obj/examples .obj/tests
 build .obj: _obj_rule
